@@ -168,7 +168,7 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
             "token_request_confirmacao_pagamento" => $_POST["token-request-confirmacao-pagamento"]);
 
 
-        return $data_post = json_encode($data_service_request);
+        $data_post = json_encode($data_service_request);
         $url = $url . "/transacao";
 
 
