@@ -1,0 +1,56 @@
+.bradescoce2-checkout-success .obrigado-sucesso {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #548C1C;
+}
+
+.bradescoce2-checkout-success .esquerda {
+    float: left;
+    width: 60%;
+    padding: 0px;
+    margin-left: 20px;
+    margin-top: 20px;
+}
+
+.bradescoce2-checkout-success .titulo {
+    margin-top: 0px;
+}
+
+.bradescoce2-checkout-success .texto {
+    padding: 10px;
+    margin-left: 12px;
+    margin-right: 14px;
+    font-size: 12px;
+    padding-top: 9px;
+    padding-bottom: 28px;
+    width: 91%;
+}
+
+.bradescoce2-checkout-success .right-texto {
+    width: 48%;
+    float: right;
+    text-align: right;
+    font-size: 13px;
+    font-weight: bold;
+}
+.bradescoce2-checkout-success .left-texto {
+    width: 48%;
+    font-size: 14px;
+    float:left;
+}
+
+
+.bradescoce2-checkout-success  .direita {
+    padding: 0px;
+    float: right;
+    width: 29%;
+    margin-left: 20px;
+    margin-top: 20px;
+}
+.bradescoce2-checkout-success .titulo {
+    width: 100%;
+    font-size: 21px;
+    color: rgb(66, 74, 84);
+    font-weight: bold;
+}

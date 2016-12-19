@@ -1,0 +1,287 @@
+<?php
+/**
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * @category   payment
+ * @package    Melhoreslojas_bradescoce
+ * @copyright  Copyright (c) 2011 Melhoreslojas (www.magento.net.br)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @author     Melhoreslojas <contato@magento.net.br>
+ */
+
+class Oitoo_Bradescocomercioeletronico_Model_Payment extends Mage_Payment_Model_Method_Abstract
+{
+
+    protected $_code  = 'bradescoce';
+    protected $_formBlockType = 'bradescoce/form';
+    protected $_infoBlockType = 'bradescoce/info';
+    protected $_canUseInternal = true;
+    protected $_canUseForMultishipping = false;
+
+    public function confirmaPagamento(){
+
+        $mercahntid = Mage::getStoreConfig(
+                   'payment/cartaoeboleto/merchantid',
+                   Mage::app()->getStore()
+               );
+        $manager = Mage::getStoreConfig(
+                          'payment/cartaoeboleto/manager',
+                          Mage::app()->getStore()
+                      );
+        $passwd = Mage::getStoreConfig(
+                                 'payment/cartaoeboleto/passwd',
+                                 Mage::app()->getStore()
+                             );
+
+        $datadehoje = date('d/m/Y', strtotime(now()));
+        $url = 'https://mup.comercioeletronico.com.br/sepsmanager/ArqRetBradescoBoleto_XML.asp?merchantid=' . $mercahntid . '&data=' . $datadehoje . '&Manager=' . $manager . '&passwd=' . $passwd;
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, Array("Content-Type: application/xml; charset=ISO-8859-1"));
+        $xml = simplexml_load_string(curl_exec($curl));
+        curl_close($curl);
+        echo "Iniciando verificação dos pedidos";
+        foreach($xml->Bradesco->Pedido as $boleto){
+            echo "Verificando pedido individual";
+            $atributos = $boleto->attributes();
+            if($atributos['Status'] == '21'){
+                echo "Dados do pedido";
+
+                //verifica se pedido ainda nao foi capturado e captura
+                $pedidopago = '';
+                $pedidopago = $atributos['Numero'];
+                $order = mage::getModel('sales/order')->loadByIncrementId($pedidopago);
+
+                if($order->getState() != 'new') continue;
+                try {
+                    echo "Pedido pago encontrado";
+                    if(!$order->canInvoice())
+                    {
+                        Mage::throwException(Mage::helper('core')->__('Cannot create an invoice.'));
+                    }
+                    $invoice = Mage::getModel('sales/service_order', $order)->prepareInvoice();
+                    if (!$invoice->getTotalQty()) {
+                        Mage::throwException(Mage::helper('core')->__('Cannot create an invoice without products.'));
+                    }
+                    $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_OFFLINE);
+                    $invoice->register();
+                    $transactionSave = Mage::getModel('core/resource_transaction')
+                        ->addObject($invoice)
+                        ->addObject($invoice->getOrder());
+                    $transactionSave->save();
+                    $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true)->save();
+                    echo "Pagamento capturado";
+                }
+                catch (Mage_Core_Exception $e) {
+                    echo "Ocorreu um erro ao capturar o pedido";
+                }
+            } else {
+                echo "Nenhum pedido disponível";
+                var_export($xml->Bradesco->Pedido);
+            }
+        }
+
+
+        // In case any of our lines are larger than 70 characters, we should use wordwrap()
+        $message = wordwrap($message, 70);
+    }
+
+    public function geraBoleto($variaveis){
+
+        //CARREGA MODEL PRINCIPAL DO MÓDULO
+        $configmodulo = Mage::getSingleton('bradescoce/payment');
+
+
+        $codigo_pedido = $variaveis['numOrder'];
+        if($codigo_pedido == ''){
+            $codigo_pedido = $variaveis['OrderId'];
+        }
+
+        $pedido = Mage::getModel('sales/order')->loadByIncrementId($codigo_pedido);
+
+        //PEGA ID DA LOJA DA COMPRA
+        $storeId = $pedido->getStore();
+
+        //CARREGA MODEL DO CLIENTE
+        $cliente = Mage::getModel('customer/customer')->load($pedido->getCustomerId());
+
+        if(count($pedido->getAllItems()) == 0){
+            return 'Nenhum produto no pedido';
+        }
+
+        $endereco =  $pedido->getBillingAddress();
+        $taxa_envio = $pedido->getShippingAmount();
+
+        $nome = $endereco->getFirstname();
+        $cgccpf = $cliente->getTaxvat();
+        //it verify if cpf is empty
+        if($cgccpf == '' || $cgccpf == NULL){
+          $cgccpf = $pedido->getBillingAddress()->getVatId();
+        }
+
+
+        $cidade = $endereco->getCity();
+        $estado = $endereco->getRegionCode();
+
+
+        $BradescoDiasdeVencimento = $configmodulo->getConfigData('diasvencimento', $storeId);
+        $BradescoShopFacil = "0";
+        $BradescoRazaoSocial = $configmodulo->getConfigData('cedente', $storeId);
+        $BradescoAgencia = $configmodulo->getConfigData('numeroagencia', $storeId);
+        $BradescoCodigoCedente = $configmodulo->getConfigData('numeroconta', $storeId);
+        $Unidade = $configmodulo->getConfigData('unidade', $storeId);
+
+        $BradescoAssinaturaBoleto = $configmodulo->getConfigData('assinatura', $storeId);
+
+        $unidade = $configmodulo->getConfigData('unidade', $storeId);
+        $carteira = $configmodulo->getConfigData('carteira', $storeId);
+        if($carteira == '') {
+            $carteira = 25;
+        }
+        $rua = $endereco->getStreet(1);
+        $complemento = $endereco->getStreet(2);
+        $cep = $endereco->getPostcode();
+        $cep = str_replace('-', '', $cep);
+        $instrucao1 = $configmodulo->getConfigData('instrucao1', $storeId);
+        $instrucao2 = $configmodulo->getConfigData('instrucao2', $storeId);
+        $instrucao3 = $configmodulo->getConfigData('instrucao3', $storeId);
+        $instrucao4 = $configmodulo->getConfigData('instrucao4', $storeId);
+        $instrucao5 = $configmodulo->getConfigData('instrucao5', $storeId);
+        $instrucao6 = $configmodulo->getConfigData('instrucao6', $storeId);
+        $instrucao7 = $configmodulo->getConfigData('instrucao7', $storeId);
+        $instrucao8 = $configmodulo->getConfigData('instrucao8', $storeId);
+        $instrucao9 = $configmodulo->getConfigData('instrucao9', $storeId);
+        $instrucao10 = $configmodulo->getConfigData('instrucao10', $storeId);
+        $instrucao11 = $configmodulo->getConfigData('instrucao11', $storeId);
+        $instrucao12 = $configmodulo->getConfigData('instrucao12', $storeId);
+
+        $Resposta = "<BEGIN_ORDER_DESCRIPTION><orderid>=(" .  substr($codigo_pedido,-9) . ")"; //mostra somente os 9 últimos digitos do pedido
+
+
+        //$taxa_envio = 20;
+        $taxa_envio = str_replace(",", ".", $taxa_envio);
+        $total = str_replace(",", "", number_format($taxa_envio, 2, ",", "."));
+        $total = str_replace(".", "", $total);
+
+        $valorparaformatar = $pedido->getGrandTotal();
+
+
+        $quant = 0;
+        $valor = 0;
+
+        foreach ($pedido->getAllItems() as $item){
+            //pega todos os itens do pedido
+
+            $nome_produto = $item->getName();
+            $quantidade = $item->getQtyOrdered();
+            $quantidade = str_replace("," , "", number_format($quantidade, 0, ",", "."));
+
+
+            $valor = $item->getPrice();
+            if($valor == 0){
+		$valor = $item->getParentItem()->getPrice();
+            }
+            $valor = str_replace(",", ".",$valor);
+
+            $valor = str_replace("," , "", number_format($valor, 2, ",", "."));
+            $valor = str_replace("." , "", $valor);
+
+            $Resposta .=  chr(13) . chr(10) . "<descritivo>=(" . $nome_produto . ")" . chr(13) . chr(10);
+            $Resposta .=  "<quantidade>=(" . $quantidade . ")" . chr(13) . chr(10) ;
+            $Resposta .=  "<unidade>=(" . $unidade . ")" . chr(13) . chr(10);
+            $Resposta .=  "<valor>=(" . $valor . ")";
+        }
+
+
+        if ($total <> "0"){
+            $Resposta .=  chr(13) . chr(10) . "<adicional>=(Frete)" . chr(13) . chr(10);
+            $Resposta .=  "<valorAdicional>=(" . $total . ")";
+        }
+        $Resposta .=  "<END_ORDER_DESCRIPTION>" . chr(13) . chr(10);
+
+        //echo $Resposta;
+
+        $cpfCorrigido = '';
+        for ($i = 0; $i <= strlen($cgccpf); $i++) {
+            if (is_numeric(substr($cgccpf, $i, 1))){
+                $cpfCorrigido .= substr($cgccpf, $i, 1);
+            }
+        }
+        $hoje = date("d/m/Y");
+
+
+        $total = money_format('R$ %.2n', $valorparaformatar);
+        $total = str_replace(" ", "", $total);
+        $vencimento =  "86400" * $BradescoDiasdeVencimento + mktime(0,0,0,date('m'),date('d'),date('Y'));
+        $vencimento = date ("d/m/Y", $vencimento);
+
+
+        $Resposta .=  chr(13) . chr(10);
+        $Resposta .=  "<BEGIN_BOLETO_DESCRIPTION><CEDENTE>=(" . $BradescoRazaoSocial . ")" . chr(13) . chr(10);
+        $Resposta .=  "<BANCO>=(237)" . chr(13) . chr(10);
+        $Resposta .=  "<NUMEROAGENCIA>=(" . $BradescoAgencia . ")" . chr(13) . chr(10);
+        $Resposta .=  "<NUMEROCONTA>=(" . $BradescoCodigoCedente . ")" . chr(13) . chr(10);
+        $Resposta .=  "<ASSINATURA>=(" . $BradescoAssinaturaBoleto . ")" . chr(13) . chr(10);
+        $Resposta .=  "<DATAEMISSAO>=(" . $hoje . ")" . chr(13) . chr(10);
+        $Resposta .=  "<DATAPROCESSAMENTO>=(" . $hoje . ")" . chr(13) . chr(10);
+        $Resposta .=  "<DATAVENCIMENTO>=(" . $vencimento . ")" . chr(13) . chr(10);
+        $nome = str_replace(")", "", $nome);
+        $nome = str_replace("(", "", $nome);
+        $Resposta .=  "<NOMESACADO>=(" . $endereco->getFirstname() . ")" . chr(13) . chr(10);
+        $rua = str_replace(")", "", $rua);
+        $rua = str_replace("(", "", $rua);
+        $complemento = str_replace($complemento,")","");
+        $complemento = str_replace($complemento,"(","");
+        $Resposta .=  "<ENDERECOSACADO>=(" . $rua . ", " . $complemento . ")" . chr(13) . chr(10);
+        $cidade = str_replace(")", "", $cidade);
+        $cidade = str_replace("(", "", $cidade);
+        $Resposta .=  "<CIDADESACADO>=(" . $cidade . ")" . chr(13) . chr(10);
+        $Resposta .=  "<UFSACADO>=(" . $estado . ")" . chr(13) . chr(10);
+        $Resposta .=  "<CEPSACADO>=(" . $cep . ")" . chr(13) . chr(10);
+        $Resposta .=  "<CPFSACADO>=(" . $cpfCorrigido . ")" . chr(13) . chr(10);
+        $Resposta .=  "<NUMEROPEDIDO>=(" . substr($codigo_pedido,-9) . ")" . chr(13) . chr(10);
+        $Resposta .=  "<VALORDOCUMENTOFORMATADO>=(" . $total . ")" . chr(13) . chr(10);
+        $Resposta .=  "<SHOPPINGID>=(" . $BradescoShopFacil . ")" . chr(13) . chr(10);
+        $Resposta .=  "<CARTEIRA>=(" . $carteira . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO1>=(" . $instrucao1 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO2>=(" . $instrucao2 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO3>=(" . $instrucao3 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO4>=(" . $instrucao4 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO5>=(" . $instrucao5 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO6>=(" . $instrucao6 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO7>=(" . $instrucao7 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO8>=(" . $instrucao8 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO9>=(" . $instrucao9 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO10>=(" . $instrucao10 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO11>=(" . $instrucao11 . ")" . chr(13) . chr(10);
+        $Resposta .=  "<INSTRUCAO12>=(" . $instrucao12 . ")<END_BOLETO_DESCRIPTION>" . chr(13) . chr(10);
+
+
+        mage::log($Resposta);
+        return utf8_decode($Resposta); //converte de utf8 para iso
+
+
+    }
+
+
+
+   public function getOrderPlaceRedirectUrl($orderId = 0)
+	{
+	   $params = array();
+       $params['_secure'] = true;
+
+	   if ($orderId != 0 && is_numeric($orderId)) {
+	       $params['order_id'] = $orderId;
+	   }
+
+
+        return Mage::getUrl('bradescoce/checkout/success', $params);
+    }
+
+}

@@ -1,0 +1,15 @@
+/app/design/frontend/base/default/layout/bradescoce.xml
+/app/design/frontend/base/default/template/bradescoce/
+/app/etc/modules/Oitoo_Bradescocomercioeletronico.xml
+/app/code/local/Oitoo/Bradescocomercioeletronico/
+/skin/frontend/base/default/images/Oitoo_Bradescocomercioeletronico/
+/skin/frontend/base/default/css/bradescoce.css
+
+
+ln -s ~/Documentos/Bitbucket/Bradesco/app/design/frontend/base/default/layout/bradescoce.xml  ~/Documentos/Lojadetestes/app/design/frontend/base/default/layout/bradescoce.xml
+ln -s ~/Documentos/Bitbucket/Bradesco/app/design/frontend/base/default/template/bradescoce/  ~/Documentos/Lojadetestes/app/design/frontend/base/default/template/bradescoce/
+ln -s ~/Documentos/Bitbucket/Bradesco/app/etc/modules/Oitoo_Bradescocomercioeletronico.xml   ~/Documentos/Lojadetestes/app/etc/modules/Oitoo_Bradescocomercioeletronico.xml
+ln -s ~/Documentos/Bitbucket/Bradesco/app/code/local/Oitoo/Bradescocomercioeletronico/      ~/Documentos/Lojadetestes/app/code/local/Oitoo/Bradescocomercioeletronico/ 
+ln -s ~/Documentos/Bitbucket/Bradesco/skin/frontend/base/default/images/Oitoo_Bradescocomercioeletronico/  ~/Documentos/Lojadetestes/skin/frontend/base/default/images/Oitoo_Bradescocomercioeletronico/
+ln -s ~/Documentos/Bitbucket/Bradesco/skin/frontend/base/default/css/bradescoce.css  ~/Documentos/Lojadetestes/skin/frontend/base/default/css/bradescoce.css
+ln -s ~/Documentos/Bitbucket/Bradesco/var/connect/bradescoce.xml  ~/Documentos/Lojadetestes/var/connect/bradescoce.xml 

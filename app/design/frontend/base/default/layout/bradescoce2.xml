@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+
+  <bradescoce_checkout_success>
+    <reference name="root">
+      <action method="setTemplate"><template>page/1column.phtml</template></action>
+    </reference>
+    <reference name="head">
+        <action method="addCss"><stylesheet>css/bradescoce2.css</stylesheet></action>
+    </reference>
+    <reference name="content">
+      <block type="bradescoce2/success" name="boleto_index" template="bradescoce2/checkout/success.phtml"/>
+    </reference>
+  </bradescoce_checkout_success>
+</layout>

@@ -1,0 +1,92 @@
+<?php
+$order = mage::getModel('sales/order')->load($this->getOrderId(),'increment_id');
+$order->sendNewOrderEmail();
+$valorfrete = $order->getShippingAmount();
+$valordesconto = $order->getDiscountAmount();
+$valortotal = $order->getGrandTotal();
+$taxas = $order->getTaxAmount();
+$configmodulo = Mage::getSingleton('bradescoce2/payment');
+$ambienteproducao = $configmodulo->getConfigData('ambiente', Mage::app()->getStore()->getId());
+$merchantid = $configmodulo->getConfigData('merchantid', Mage::app()->getStore()->getId());
+?>
+
+
+<div class="esquerda">
+
+    <div class="obrigado-sucesso">Pedido Realizado com Sucesso!</div>
+    <div class="texto">Seu pedido foi finalizado com sucesso! </div>
+
+
+    <div class="titulo">Número do pedido: <span style="color:#548C1C"><?php echo  $this->escapeHtml($this->getOrderId()) ?></span></div>
+
+    <div class="texto">A confirmação do pedido foi enviada para o e-mail <b> <?php echo $order->getCustomerEmail() ?></b></div>
+
+    <div class="titulo">Importante</div>
+    <div class="texto">
+        Clique na imagem abaixo para abrir o boleto para pagamento.<br>
+        <a href="<?php  if($ambienteproducao) { echo "https://mup.comercioeletronico.com.br/sepsBoleto/" . $merchantid . "/prepara_pagto.asp?merchantid=" . $merchantid . "&orderid=" . $this->getOrderId(); } else { echo "http://mupteste.comercioeletronico.com.br/sepsBoleto/" . $merchantid . "/prepara_pagto.asp?merchantid=" . $merchantid . "&orderid=" . $this->getOrderId();  } ?>"><img src="<?php echo $this->getSkinUrl('images/Oitoo_Bradescocomercioeletronico2/icon-pag-boleto.png'); ?>"></a>
+
+
+    </div>
+
+
+    <div class="titulo">Dados de entrega: </div>
+    <div class="texto"><?php echo $order->getShippingDescription() ?></div>
+
+    <div class="titulo">Endereço de entrega</div>
+    <div class='texto'>
+        <?php
+        $_shippingAddress = $order->getShippingAddress();
+        echo '<b>' . $_shippingAddress->getFirstname() . ' ' .  $_shippingAddress->getLastname() . '</b><br><br>';
+        echo $_shippingAddress->getStreetFull().'<br>';
+        echo $_shippingAddress->getRegion().'<br>';
+        echo $_shippingAddress->getCity().'<br>';
+        echo $_shippingAddress->getPostcode().'<br>';
+        ?>
+    </div>
+
+</div>
+
+<div class=" direita">
+
+    <div class="titulo">Itens do pedido</div>
+    <?php
+
+    $items = $order->getAllItems();
+    $itemcount=count($items);
+    $name=array();
+    $unitPrice=array();
+    $sku=array();
+    $ids=array();
+    $qty=array();
+    foreach ($items as $itemId => $item)
+    {
+        echo "<div class='texto' style='height: 80px;'><div class='left-texto'>";
+        echo $item->getName().'<br>';
+        echo $item->getQtyToInvoice().' unidades';
+        echo "</div>";
+        echo "<div class='right-texto'>";
+        echo Mage::helper('core')->currency($item->getPrice()*$item->getQtyToInvoice());
+        echo "</div></div>";
+        //$sku[]=$item->getSku();
+        //$ids[]=$item->getProductId();
+
+    }
+    echo "<div class='texto' style='background: #F5F3F3;'>";
+    echo "<div class='left-texto'>Frete</div><div class='right-texto'>". Mage::helper('core')->currency($valorfrete)."</div>";
+    echo "</div>";
+    echo "<div class='texto'>";
+    echo "<div class='left-texto'>Desconto</div><div class='right-texto'>". Mage::helper('core')->currency($valordesconto)."</div>";
+    echo "</div>";
+    if($taxas > 0){
+        echo "<div class='texto'>";
+        echo "<div class='left-texto'>Taxas</div><div class='right-texto'>". Mage::helper('core')->currency($taxas)."</div>";
+        echo "</div>";
+    }
+    echo "<div class='texto' style='background: #F5F3F3;'>";
+    echo "<div class='left-texto'>Total</div><div class='right-texto'>".Mage::helper('core')->currency($valortotal)."</div>";
+    echo "</div>";
+    ?>
+
+
+</div>

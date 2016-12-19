@@ -1,0 +1,374 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * @category   payment
+ * @package    Alex Braga_bradescoce
+ * @copyright  Copyright (c) 2016 Kaisan (www.kaisan.com.br)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @author     Alex Braga <>
+ */
+-->
+
+<config>
+	<sections>
+        <payment translate="label" module="payment">
+			<groups>
+		      	<bradescoce2 translate="label">
+
+					<label>Boleto Bradesco Comércio Eletrônico</label>
+					<sort_order>675</sort_order>
+					<show_in_default>1</show_in_default>
+				  	<show_in_website>1</show_in_website>
+				  	<show_in_store>1</show_in_store>
+
+                    <comment>
+					
+                    </comment>
+
+					<fields>
+                       <ambiente translate="label">
+							<label>Ambiente</label>
+							<frontend_type>select</frontend_type>
+							<source_model>bradescoce2/source_ambiente</source_model>
+							<sort_order>1</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+					    </ambiente>
+				      	<active translate="label">
+							<label>Enabled</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>1</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+					    </active>
+              <title translate="label">
+					  		<label>Título</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>2</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							    Nome que irá aparecer para o cliente
+							</div>
+							]]>
+						    </comment>
+				      </title>
+              <merchantid translate="label">
+					  		<label>Nº da loja no bradesco</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>2</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							    O mesmo que merchantid
+							</div>
+							]]>
+						    </comment>
+				      </merchantid>
+							<manager translate="label">
+									<label>Manager</label>
+									<frontend_type>text</frontend_type>
+									<sort_order>2</sort_order>
+									<show_in_default>1</show_in_default>
+									<show_in_website>1</show_in_website>
+									<show_in_store>1</show_in_store>
+									<comment>
+									<![CDATA[
+									<div>
+										Usuário do administrador do sistema de boleto.
+									</div>
+									]]>
+										</comment>
+							</manager>
+							<passwd translate="label">
+									<label>Senha</label>
+									<frontend_type>text</frontend_type>
+									<sort_order>2</sort_order>
+									<show_in_default>1</show_in_default>
+									<show_in_website>1</show_in_website>
+									<show_in_store>1</show_in_store>
+									<comment>
+									<![CDATA[
+									<div>
+										Senha de acesso do sistema gerenciador de boletos de boletos.
+									</div>
+									]]>
+										</comment>
+							</passwd>
+					    <unidade translate="label">
+					  		<label>Unidade</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>2</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							    ex: UN
+							</div>
+							]]>
+						    </comment>
+				      </unidade>
+					    <order_status translate="label">
+							<label>Status dos novos pedidos</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_order_status_new</source_model>
+					  		<sort_order>3</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+                                            </order_status>
+						<cedente translate="label">
+					  		<label>Cedente</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>4</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							    É o nome da loja que está emitindo o boleto. Por exemplo, Loja LTDA.
+							</div>
+							]]>
+						    </comment>
+                                                </cedente>
+                                                <banco translate="label">
+					  		<label>Banco</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>5</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							     Este campo deve ser preenchido com o número do banco. Neste caso, o valor pode ser constante e igual a 237, que é o número do banco Bradesco
+							</div>
+							]]>
+						    </comment>
+                                                </banco>
+                                                <numeroagencia translate="label">
+					  		<label>Número da agência</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>6</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							    : Este campo deve ser preenchido com o número da agência da conta do lojista. Para o ambiente de testes, o desenvolvedor deve utilizar a agência de teste 0001. Note que os zeros à esquerda são obrigatórios, pois a mesma deve conter 4 dígitos.
+</div>
+							]]>
+						    </comment>
+                                                </numeroagencia>
+						<numeroconta translate="label">
+					  		<label>Numeroconta</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>7</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							   Número da conta do lojista na agência informada no item anterior. Para ambiente de testes, o desenvolvedor deve utilizar a conta de teste 1234567. Note que os zeros à esquerda são obrigatórios, pois a mesma deve conter 7 dígitos.
+							]]>
+						    </comment>
+                                                </numeroconta>
+                                                <assinatura translate="label">
+					  		<label>Assinatura</label>
+					  		<frontend_type>textarea</frontend_type>
+					  		<sort_order>8</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							 Este campo deverá ser preenchido com a assinatura digital do Boleto com retorno que será fornecida para o lojista. Trata-se de um campo de  256 caracteres hexadecimais.
+							]]>
+						    </comment>
+                                                </assinatura>
+                            <diasvencimento translate="label">
+					  		<label>DiasVencimento</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>9</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							 Este campo deverá ser preenchido com a quantidade de dias para o vencimento do boleto.
+							]]>
+						    </comment>
+                                                </diasvencimento>
+                                                <carteira translate="label">
+					  		<label>Número da carteira</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>10</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+						Este campo é opcional. Caso o lojista use um número de carteira de cobrança diferente da default que é igual a “25”. Muita atenção no uso deste campo, pois se um número de carteira de cobrança diferente da qual o lojista tem contrato for informado aqui, o recebimento do valor vendido pela loja poderá não ser recebido. Recomenda-se o uso apenas por aqueles que tiverem carteira de cobrança especial. Caso contrário, esta TAG deverá ser eliminada da mensagem. Se a TAG for omitida, o campo será preenchido automaticamente com o valor “25” (default).
+							]]>
+						    </comment>
+                                                </carteira>
+                                                 <textocliente translate="label">
+					  		<label>Texto exibido para o cliente</label>
+					  		<frontend_type>textarea</frontend_type>
+					  		<sort_order>8</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+							 Este campo aparece quando o cliente seleciona essa forma de pagamento no checkout.
+							]]>
+						    </comment>
+                                                </textocliente>
+                                                <instrucao1 translate="label">
+					  		<label>Instrução linha 1</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>11</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+							<comment>
+							<![CDATA[
+							<div>
+                                                        Este campo é opcional. São as instruções variáveis que serão apresentadas no corpo do Boleto, ao total de doze linhas, sendo que cada uma delas tem uma posição específica no corpo do Boleto. Cada linha de instrução é limitada a 100 caracteres alfanuméricos, e pode conter caracteres especiais. Ex: -, %, &, $.
+                                                        </div>
+                                                        ]]>
+						    </comment>
+                                                </instrucao1>
+                                                <instrucao2 translate="label">
+					  		<label>Instrução linha 2</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>12</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao2>
+                                                <instrucao3 translate="label">
+					  		<label>Instrução linha 3</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>13</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao3>
+                                                <instrucao4 translate="label">
+					  		<label>Instrução linha 4</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>14</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao4>
+                                                <instrucao5 translate="label">
+					  		<label>Instrução linha 5</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>15</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao5>
+                                                <instrucao6 translate="label">
+					  		<label>Instrução linha 6</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>16</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao6>
+                                                <instrucao7 translate="label">
+					  		<label>Instrução linha 7</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>17</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao7>
+                                                <instrucao8 translate="label">
+					  		<label>Instrução linha 8</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>18</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao8>
+                                                <instrucao9 translate="label">
+					  		<label>Instrução linha 9</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>19</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao9>
+                                                <instrucao10 translate="label">
+					  		<label>Instrução linha 10</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>20</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao10>
+                                                <instrucao11 translate="label">
+					  		<label>Instrução linha 11</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>21</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao11>
+                                                <instrucao12 translate="label">
+					  		<label>Instrução linha 12</label>
+					  		<frontend_type>text</frontend_type>
+					  		<sort_order>22</sort_order>
+					  		<show_in_default>1</show_in_default>
+					  		<show_in_website>1</show_in_website>
+					  		<show_in_store>1</show_in_store>
+
+                                                </instrucao12>
+
+
+			  	     </fields>
+                </bradescoce2>
+            </groups>
+		</payment>
+	</sections>
+</config>
