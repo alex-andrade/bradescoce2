@@ -14,21 +14,20 @@ Boleto Bancário
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  * @author     Alex <>
  */
+
+
+
+
 $configmodulo = Mage::getSingleton('bradescoce2/payment');
-$ambienteproducao = $configmodulo->getConfigData('ambiente', Mage::app()->getStore()->getId());
-$merchantid = $configmodulo->getConfigData('merchantid', Mage::app()->getStore()->getId());
+$order        = $this->getInfo()->getOrder();
+
+$customer_id = $order->getCustomerId();
+$customerData = Mage::getModel('customer/customer')->load($customer_id);
 
 
-if($this->getInfo()){
 
-    if($this->getInfo()->getOrder()){
-        $orderId = $this->getInfo()->getOrder()->getIncrementId();
+if($this->getInfo() && $order){
 
-        ?>
+    echo "<a href='" . $this->getUrl('bradescoce2/index/registrarBoleto') . "?id_pedido=" . $order->getId() . "& id_cliente=" . $cliente->getId() . "'><img src=\"<?php echo $this->getSkinUrl('images/Oitoo_Bradescocomercioeletronico2/icon-pag-boleto.png'); ?>\"></a>";
 
-        <br><br>
-
-        Clique na imagem abaixo para imprimir a segunda via do boleto.<br>
-        <a href="<?php  if($ambienteproducao) { echo "https://mup.comercioeletronico.com.br/sepsBoleto/" . $merchantid . "/prepara_pagto.asp?merchantid=" . $merchantid . "&orderid=" . $orderId; } else { echo "http://mupteste.comercioeletronico.com.br/sepsBoleto/" . $merchantid . "/prepara_pagto.asp?merchantid=" . $merchantid . "&orderid=" . $orderId;  } ?>"><img src="<?php echo $this->getSkinUrl('images/Oitoo_Bradescocomercioeletronico2/icon-pag-boleto.png'); ?>"></a>
-
-    <?php }} ?>
+}

@@ -20,26 +20,28 @@ class Oitoo_Bradescocomercioeletronico2_IndexController extends Mage_Core_Contro
 
     }
 
-    public function gerarboletoAction(){
+    public function registrarBoletoAction(){
 
-        $pedido = mage::getModel('sales/order')->load($_REQUEST['id_pedido']);
-        $cliente = mage::getModel('customer/customer')->load($_REQUEST['id_cliente']);
+        $_order = mage::getModel('sales/order')->load($_REQUEST['id_pedido']);
+        $_customer = mage::getModel('customer/customer')->load($_REQUEST['id_cliente']);
 
-        if($pedido && $cliente){
-            $retorno = mage::getModel('bradescoce2/payment')->registrarBoleto($pedido, $cliente);
-            var_dump($retorno);
+        if($_order && $_customer){
+            $url_acesso = mage::helper('bradescoce2')->getUrlAcesso($_order, $_customer);
+            if($url_acesso){
+                var_dump($url_acesso);
+            } else {
+                echo "Não foi possível emitir o boleto. Por favor entre em contato!";
+            }
         } else {
-            echo "Ocorreu um erro";
+            echo "Não foi possível emitir o boleto. Por favor entre em contato!";
         }
 
 
     }
 
-    public function falhaAction(){
-        var_dump($_REQUEST);
-    }
+
 
     public function ConfirmarPagamentosAction(){
-          mage::getModel('bradescoce2/payment')->confirmaPagamento();
+          var_dump(mage::getModel('bradescoce2/payment')->setAutenticacao(0,123,54654));
     }
 }

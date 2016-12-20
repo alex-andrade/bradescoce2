@@ -19,9 +19,10 @@ $cliente      = Mage::getSingleton('customer/session')->getCustomer();
 $order        = $this->getInfo()->getOrder();
 
 
+
 if($this->getInfo() && $order){
 
-  echo "<a href='" . $this->getUrl('bradescoce2/index/gerarboleto') . "?id_pedido=" . $order->getId() . "& id_cliente=" . $cliente->getId() . "'>Gerar Boleto</a>";
+  echo "<a href='" . $this->getUrl('bradescoce2/index/registrarBoleto') . "?id_pedido=" . $order->getId() . "& id_cliente=" . $cliente->getId() . "'><img src=\"<?php echo $this->getSkinUrl('images/Oitoo_Bradescocomercioeletronico2/icon-pag-boleto.png'); ?>\"></a>";
 
 }
 

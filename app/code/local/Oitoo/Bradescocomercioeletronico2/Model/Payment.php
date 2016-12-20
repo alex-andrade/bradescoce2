@@ -24,9 +24,159 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
     protected $_canUseForMultishipping = false;
 
 
+    public function confirmarPagamentos(){
+        $configmodulo = Mage::getSingleton('bradescoce2/payment');
+
+        $mercahntid = Mage::getStoreConfig(
+            'payment/bradescoce2/merchantid',
+            Mage::app()->getStore()
+        );
+
+        $chave = Mage::getStoreConfig(
+            'payment/bradescoce2/assinatura',
+            Mage::app()->getStore()
+        );
+
+        $ambienteproducao   = $configmodulo->getConfigData('ambiente', Mage::app()->getStore()->getId());
+
+        $tokenAutenticacao  = $this->setAutenticacao($ambienteproducao, $mercahntid, $chave);
+        if($tokenAutenticacao){
+            //autenticação realizada com sucesso
+            $pedidosPagos = $this->getPedidosPagos();
+
+            if($pedidosPagos){
+
+                foreach($pedidosPagos as $pedido){
+
+                    //confere pagamento
+                    if($pedido->status == "21" || $pedido->status == "23") {
+                        //o boleto foi confirmado
+                        $id_pedido = $pedido->numero;
+                        $this->criarFatura($id_pedido);
+                    }
+
+                }
+
+            }
+
+        }
+
+
+    }
+
+    public function criarFatura($pedidopago){
+        $order = mage::getModel('sales/order')->loadByIncrementId($pedidopago);
+
+        if($order->getState() != 'new') {
+            Mage::log('Não foi possivel criar a fatura do boleto ' . $pedidopago . 'pois ela já existe!');
+            return false;
+        } else {
+            try {
+                //echo "Pedido pago encontrado";
+                if(!$order->canInvoice())
+                {
+                    Mage::throwException(Mage::helper('core')->__('Cannot create an invoice.'));
+                }
+                $invoice = Mage::getModel('sales/service_order', $order)->prepareInvoice();
+                if (!$invoice->getTotalQty()) {
+                    Mage::throwException(Mage::helper('core')->__('Cannot create an invoice without products.'));
+                }
+                $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_OFFLINE);
+                $invoice->register();
+                $transactionSave = Mage::getModel('core/resource_transaction')
+                    ->addObject($invoice)
+                    ->addObject($invoice->getOrder());
+                $transactionSave->save();
+                $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true)->save();
+                Mage::log('A fatura do boleto ' . $pedidopago . ' foi criada com sucesso!');
+                return true;
+            }
+            catch (Mage_Core_Exception $e) {
+                Mage::log('Não foi possivel criar a fatura do boleto ' . $pedidopago . ':' . $e);
+                return false;
+            }
+        }
+
+    }
+
+    public function getPedidosPagos($ambienteProducao, $merchantId, $token){
+
+        $datainicial    =   date('Y/m/d h:m', strtotime("-3 day"));
+        $datadehoje     =   date('Y/m/d h:m', strtotime(now()));
+
+
+        if($ambienteProducao){
+            $urlGetOrderList =
+                "https://meiosdepagamentobradesco.com.br/SPSConsulta/GetOrderList/$merchantId/transferencia?token=$token&dataInicial=$datainicial&dataFinal=$datadehoje&status=1";
+        } else {
+            $urlGetOrderList =
+                "https://homolog.meiosdepagamentobradesco.com.br/SPSConsulta/GetOrderList/$merchantId/transferencia?token=$token&dataInicial=$datainicial&dataFinal=$datadehoje&status=1";
+        }
+
+
+
+        $headers = array();
+        $headers[] = "Accept: application/json";
+        $headers[] = "Accept-Charset: UTF-8";
+        $headers[] = "Accept-Encoding:  application/json";
+        $headers[] = "Content-Type: application/json; charset=UTF-8";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $urlGetOrderList);
+        curl_setopt($ch, CURLOPT_POST, 0);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+
+        $result = json_decode($result);
+        $success = ($result->status->codigo == 0);
+        if($success){
+            return $result->pedidos;
+        } else {
+            return false;
+        }
+
+    }
+
+
+
+    public function setAutenticacao($ambienteProducao, $merchantId, $chaveSeguranca) {
+
+        if($ambienteProducao){
+            $urlAutenticacao = 'https://meiosdepagamentobradesco.com.br/SPSConsulta/Authentication/' . $merchantId;
+        } else {
+            $urlAutenticacao = 'https://homolog.meiosdepagamentobradesco.com.br/SPSConsulta/Authentication/' . $merchantId;
+        }
+
+        $headers = array();
+        $headers[] = "Accept: application/json";
+        $headers[] = "Accept-Charset: UTF-8";
+        $headers[] = "Accept-Encoding:  application/json";
+        $headers[] = "Content-Type: application/json; charset=UTF-8";
+        $AuthorizationHeader = $merchantId.":".$chaveSeguranca;
+        $AuthorizationHeaderBase64 = base64_encode($AuthorizationHeader);
+        $headers[] = "Authorization: Basic ".$AuthorizationHeaderBase64;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $urlAutenticacao);
+        curl_setopt($ch, CURLOPT_POST, 0);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+
+        $result = json_decode($result);
+
+        $success = ($result->status->codigo == 0);
+        if($success){
+            return $result->token->token;
+        } else {
+            return false;
+        }
+    }
 
     public function registrarBoleto($pedido, $cliente){
 
+        $payment = $pedido->getPayment();
 
         $configmodulo = Mage::getSingleton('bradescoce2/payment');
 
@@ -165,7 +315,7 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
             "pedido"            => $data_service_pedido,
             "comprador"         => $data_service_comprador,
             "boleto"            => $data_service_boleto,
-            "token_request_confirmacao_pagamento" => $_POST["token-request-confirmacao-pagamento"]);
+            "token_request_confirmacao_pagamento" => 'ABCDEFG12345678');
 
 
         $data_post = json_encode($data_service_request);
@@ -189,6 +339,19 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($ch);
+
+        $result = json_decode($result);
+        if($result->status->codigo == 0){
+            //sucesso - Salva dados do boleto
+            $payment->setAdditionalInformation('token',$result->boleto->token);
+            $payment->setAdditionalInformation('url_acesso',$result->boleto->url_acesso);
+            $payment->setAdditionalInformation('linha_digitavel',$result->boleto->linha_digitavel);
+            Mage::log('Boleto ' . $result->boleto->token . ' emitido com sucesso! Url de acesso: ' . $result->boleto->url_acesso);
+            return true;
+        } else {
+            Mage::log('Ocorreu um erro ao emitir o boleto: ' . print_r($result));
+            return false;
+        }
         return $result;
     }
 
