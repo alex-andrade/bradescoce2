@@ -44,4 +44,29 @@ class Oitoo_Bradescocomercioeletronico2_IndexController extends Mage_Core_Contro
     public function ConfirmarPagamentosAction(){
           var_dump(mage::getModel('bradescoce2/payment')->setAutenticacao(0,123,54654));
     }
+
+
+    public function confirmaPedidoAction(){
+        //O bradesco faz uma chamada para essa função para confirmar que o pedido de geração do boleto realmente veio da loja
+        //Param numero_pedido e token_request_confirmacao_pagamento
+        //return http 200 em caso de sucesso
+        $numero_pedido                                      =   $_REQUEST['numero_pedido'];
+
+        if(isset($_REQUEST['token_request_confirmacao_pagamento'])){
+            $token_request_confirmacao_pagamento_bradesco       =   $_REQUEST['token_request_confirmacao_pagamento'];
+        } else {
+            $token_request_confirmacao_pagamento_bradesco       =   $_REQUEST['token'];
+        }
+
+        $_order                                             =   Mage::getModel('catalog/product')->loadByIncrementId($numero_pedido);
+        $token_request_confirmacao_pagamento_loja           =   $_order->getEntityId();
+
+        if($token_request_confirmacao_pagamento_bradesco == $token_request_confirmacao_pagamento_loja){
+            $this->getResponse()->setHeader('HTTP/1.0','200',true);
+        } else {
+            //o token não bateu
+            $this->getResponse()->setHeader('HTTP/1.0','300',true);
+        }
+
+    }
 }

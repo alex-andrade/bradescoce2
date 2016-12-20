@@ -81,8 +81,8 @@
 							]]>
                             </comment>
                         </merchantid>
-                        <manager translate="label">
-                            <label>Manager</label>
+                        <email translate="label">
+                            <label>E-mail de cadastro</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>2</sort_order>
                             <show_in_default>1</show_in_default>
@@ -91,27 +91,11 @@
                             <comment>
                                 <![CDATA[
 									<div>
-										Usuário do administrador do sistema de boleto.
+										E-mail utilizado para acessar o painel do Bradesco
 									</div>
 									]]>
                             </comment>
-                        </manager>
-                        <passwd translate="label">
-                            <label>Senha</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>2</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>
-                                <![CDATA[
-									<div>
-										Senha de acesso do sistema gerenciador de boletos de boletos.
-									</div>
-									]]>
-                            </comment>
-                        </passwd>
-
+                        </email>
                         <order_status translate="label">
                             <label>Status dos novos pedidos</label>
                             <frontend_type>select</frontend_type>
@@ -236,6 +220,36 @@
 							]]>
                             </comment>
                         </textocliente>
+                        <urlLogotipo translate="label">
+                            <label>Url do Logotipo</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>9</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>
+                                <![CDATA[
+							<div>
+							    Logotipo que aparecerá no boleto. Deve conter https.
+							</div>
+							]]>
+                            </comment>
+                        </urlLogotipo>
+                        <mensagemCabecalho translate="label">
+                            <label>Url do Logotipo</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>9</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>
+                                <![CDATA[
+							<div>
+							    Mensagem a ser exibida para o cliente no cabeçalho do boleto.
+							</div>
+							]]>
+                            </comment>
+                        </mensagemCabecalho>
                         <instrucao1 translate="label">
                             <label>Instrução linha 1</label>
                             <frontend_type>text</frontend_type>

@@ -37,12 +37,18 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
             Mage::app()->getStore()
         );
 
+        $email = Mage::getStoreConfig(
+            'payment/bradescoce2/email',
+            Mage::app()->getStore()
+        );
+
         $ambienteproducao   = $configmodulo->getConfigData('ambiente', Mage::app()->getStore()->getId());
 
-        $tokenAutenticacao  = $this->setAutenticacao($ambienteproducao, $mercahntid, $chave);
+        $tokenAutenticacao  = $this->setAutenticacao($ambienteproducao, $mercahntid, $chave, $email);
+
         if($tokenAutenticacao){
             //autenticação realizada com sucesso
-            $pedidosPagos = $this->getPedidosPagos();
+            $pedidosPagos = $this->getPedidosPagos($ambienteproducao, $mercahntid, $tokenAutenticacao);
 
             if($pedidosPagos){
 
@@ -140,7 +146,7 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
 
 
 
-    public function setAutenticacao($ambienteProducao, $merchantId, $chaveSeguranca) {
+    public function setAutenticacao($ambienteProducao, $merchantId, $chaveSeguranca, $email) {
 
         if($ambienteProducao){
             $urlAutenticacao = 'https://meiosdepagamentobradesco.com.br/SPSConsulta/Authentication/' . $merchantId;
@@ -153,7 +159,7 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
         $headers[] = "Accept-Charset: UTF-8";
         $headers[] = "Accept-Encoding:  application/json";
         $headers[] = "Content-Type: application/json; charset=UTF-8";
-        $AuthorizationHeader = $merchantId.":".$chaveSeguranca;
+        $AuthorizationHeader = $email.":".$chaveSeguranca;
         $AuthorizationHeaderBase64 = base64_encode($AuthorizationHeader);
         $headers[] = "Authorization: Basic ".$AuthorizationHeaderBase64;
 
@@ -249,6 +255,9 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
         $instrucao11 = $configmodulo->getConfigData('instrucao11', $storeId);
         $instrucao12 = $configmodulo->getConfigData('instrucao12', $storeId);
 
+        $urlLogotipo = $configmodulo->getConfigData('urlLogotipo', $storeId);
+        $mensagemCabecalho = $configmodulo->getConfigData('mensagemCabecalho', $storeId);
+
         $carteira = $configmodulo->getConfigData('carteira', $storeId);
         if($carteira == '') {
             $carteira = 25;
@@ -300,12 +309,12 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
         $data_service_boleto = array(
             "beneficiario"          => $cedente,
             "carteira"              => $carteira,
-            "nosso_numero"          => $_POST["boleto-nossoNumero"],
+            "nosso_numero"          => $pedido->getIncrementId(), //igual ao número do pedido
             "data_emissao"          => $dataatual,
             "data_vencimento"       => $vencimento,
             "valor_titulo"          => $valor,
-            "url_logotipo"          => $_POST["boleto-urlLogotipo"],
-            "mensagem_cabecalho"    => $_POST["boleto-mensagemCabecalho"],
+            "url_logotipo"          => $urlLogotipo,
+            "mensagem_cabecalho"    => $mensagemCabecalho,
             "tipo_renderizacao"     => 0, //html
             "instrucoes"            => $data_service_boleto_instrucoes,
             "registro"              => $data_service_boleto_registro);
@@ -315,7 +324,7 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
             "pedido"            => $data_service_pedido,
             "comprador"         => $data_service_comprador,
             "boleto"            => $data_service_boleto,
-            "token_request_confirmacao_pagamento" => 'ABCDEFG12345678');
+            "token_request_confirmacao_pagamento" => $pedido->getEntityId());
 
 
         $data_post = json_encode($data_service_request);
