@@ -42,7 +42,7 @@ class Oitoo_Bradescocomercioeletronico2_IndexController extends Mage_Core_Contro
 
 
     public function ConfirmarPagamentosAction(){
-          var_dump(mage::getModel('bradescoce2/payment')->setAutenticacao(0,123,54654));
+          mage::getModel('bradescoce2/payment')->confirmarPagamentos();
     }
 
 

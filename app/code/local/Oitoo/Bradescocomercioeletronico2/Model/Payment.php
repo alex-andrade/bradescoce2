@@ -17,38 +17,35 @@
 class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model_Method_Abstract
 {
 
-    protected $_code  = 'bradescoce2';
-    protected $_formBlockType = 'bradescoce2/form';
-    protected $_infoBlockType = 'bradescoce2/info';
-    protected $_canUseInternal = true;
-    protected $_canUseForMultishipping = false;
+    protected $_code                        =       'bradescoce2';
+    protected $_formBlockType               =       'bradescoce2/form';
+    protected $_infoBlockType               =       'bradescoce2/info';
+    protected $_canUseInternal              =       true;
+    protected $_canUseForMultishipping      =       false;
+
+
+    protected $_storeId                     =       '';
+    protected $_chaveSeguranca              =       '';
+    protected $_merchantId                  =       '';
+    protected $_email                       =       '';
+
+
 
 
     public function confirmarPagamentos(){
-        $configmodulo = Mage::getSingleton('bradescoce2/payment');
 
-        $mercahntid = Mage::getStoreConfig(
-            'payment/bradescoce2/merchantid',
-            Mage::app()->getStore()
-        );
+        $this->_configmodulo        =   Mage::getSingleton('bradescoce2/payment');
+        $this->_storeId             =   Mage::app()->getStore()->getId();
+        $this->_chaveSeguranca      =   $this->_configmodulo->getConfigData('assinatura', $this->_storeId );
+        $this->_merchantId          =   $this->_configmodulo->getConfigData('merchantid', $this->_storeId );
+        $this->_email               =   $this->_configmodulo->getConfigData('email', $this->_storeId );
+        $this->_ambienteProducao    =   $this->_configmodulo->getConfigData('ambiente', $this->_storeId );
 
-        $chave = Mage::getStoreConfig(
-            'payment/bradescoce2/assinatura',
-            Mage::app()->getStore()
-        );
-
-        $email = Mage::getStoreConfig(
-            'payment/bradescoce2/email',
-            Mage::app()->getStore()
-        );
-
-        $ambienteproducao   = $configmodulo->getConfigData('ambiente', Mage::app()->getStore()->getId());
-
-        $tokenAutenticacao  = $this->setAutenticacao($ambienteproducao, $mercahntid, $chave, $email);
+        $tokenAutenticacao  = $this->setAutenticacao($this->_ambienteProducao, $this->_merchantId, $this->_chaveSeguranca , $this->_email );
 
         if($tokenAutenticacao){
             //autenticação realizada com sucesso
-            $pedidosPagos = $this->getPedidosPagos($ambienteproducao, $mercahntid, $tokenAutenticacao);
+            $pedidosPagos = $this->getPedidosPagos($this->_ambienteProducao, $this->_merchantId, $tokenAutenticacao);
 
             if($pedidosPagos){
 
@@ -58,7 +55,8 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
                     if($pedido->status == "21" || $pedido->status == "23") {
                         //o boleto foi confirmado
                         $id_pedido = $pedido->numero;
-                        $this->criarFatura($id_pedido);
+                        //$this->criarFatura($id_pedido);
+                        echo "Pedido pago: " . $id_pedido;
                     }
 
                 }
@@ -182,42 +180,35 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
 
     public function registrarBoleto($pedido, $cliente){
 
-        $payment = $pedido->getPayment();
+        $payment                    =   $pedido->getPayment();
 
-        $configmodulo = Mage::getSingleton('bradescoce2/payment');
+        $this->_configmodulo        =   Mage::getSingleton('bradescoce2/payment');
+        $this->_storeId             =   Mage::app()->getStore()->getId();
+        $this->_chaveSeguranca      =   $this->_configmodulo->getConfigData('assinatura', $this->_storeId );
+        $this->_merchantId          =   $this->_configmodulo->getConfigData('merchantid', $this->_storeId );
+        $this->_email               =   $this->_configmodulo->getConfigData('email', $this->_storeId );
+        $this->_ambienteProducao    =   $this->_configmodulo->getConfigData('ambiente', $this->_storeId );
 
-        $ambienteproducao = $configmodulo->getConfigData('ambiente', Mage::app()->getStore()->getId());
-        if($ambienteproducao){
+        $configmodulo               =   $this->_configmodulo;
+
+        if($this->_ambienteProducao){
             $url = 'https://meiosdepagamentobradesco.com.br/api';
         } else {
             $url = 'https://homolog.meiosdepagamentobradesco.com.br/api';
         }
 
-        $mercahntid = Mage::getStoreConfig(
-            'payment/bradescoce2/merchantid',
-            Mage::app()->getStore()
-        );
-
-        $chave = Mage::getStoreConfig(
-            'payment/bradescoce2/assinatura',
-            Mage::app()->getStore()
-        );
-
-        $cedente = Mage::getStoreConfig(
-            'payment/bradescoce2/cedente',
-            Mage::app()->getStore()
-        );
+        $cedente = $configmodulo->getConfigData('cedente', $this->_storeId);
 
         $valor = $pedido->getGrandTotal();
         $valor = str_replace(",", ".",$valor);
         $valor = str_replace("," , "", number_format($valor, 2, ",", "."));
         $valor = str_replace("." , "", $valor);
 
-        $endereco =  $pedido->getBillingAddress();
-        $rua = $endereco->getStreet1();
-        $numero = $endereco->getStreet2();
-        $complemento = $endereco->getStreet3();
-        $bairro = $endereco->getStreet4();
+        $endereco       =   $pedido->getBillingAddress();
+        $rua            =   $endereco->getStreet1();
+        $numero         =   $endereco->getStreet2();
+        $complemento    =   $endereco->getStreet3();
+        $bairro         =   $endereco->getStreet4();
 
         if($complemento == NULL || $complemento == ''){
             $enderecoCompleto = $rua . ', ' . $numero . ', ' . $bairro;
@@ -225,8 +216,8 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
             $enderecoCompleto = $rua . ', ' . $numero . ', ' . $complemento . ', ' . $bairro;
         }
 
-        $cep = $endereco->getPostcode();
-        $cep = str_replace('-', '', $cep);
+        $cep    = $endereco->getPostcode();
+        $cep    = str_replace('-', '', $cep);
 
         $cidade = $endereco->getCity();
         $cidade = str_replace(")", "", $cidade);
@@ -234,46 +225,46 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
 
         $estado = $endereco->getRegionCode();
 
-        $nome = $endereco->getFirstname() . ' ' . $endereco->getLastname();
+        $nome   = $endereco->getFirstname() . ' ' . $endereco->getLastname();
         $cgccpf = $cliente->getTaxvat();
         //it verify if cpf is empty
         if($cgccpf == '' || $cgccpf == NULL){
             $cgccpf = $pedido->getBillingAddress()->getVatId();
         }
 
-        $storeId = $pedido->getStore();
-        $instrucao1 = $configmodulo->getConfigData('instrucao1', $storeId);
-        $instrucao2 = $configmodulo->getConfigData('instrucao2', $storeId);
-        $instrucao3 = $configmodulo->getConfigData('instrucao3', $storeId);
-        $instrucao4 = $configmodulo->getConfigData('instrucao4', $storeId);
-        $instrucao5 = $configmodulo->getConfigData('instrucao5', $storeId);
-        $instrucao6 = $configmodulo->getConfigData('instrucao6', $storeId);
-        $instrucao7 = $configmodulo->getConfigData('instrucao7', $storeId);
-        $instrucao8 = $configmodulo->getConfigData('instrucao8', $storeId);
-        $instrucao9 = $configmodulo->getConfigData('instrucao9', $storeId);
-        $instrucao10 = $configmodulo->getConfigData('instrucao10', $storeId);
-        $instrucao11 = $configmodulo->getConfigData('instrucao11', $storeId);
-        $instrucao12 = $configmodulo->getConfigData('instrucao12', $storeId);
+        $cgccpf = str_replace(array('.','-',','),'',$cgccpf);
 
-        $urlLogotipo = $configmodulo->getConfigData('urlLogotipo', $storeId);
-        $mensagemCabecalho = $configmodulo->getConfigData('mensagemCabecalho', $storeId);
 
-        $carteira = $configmodulo->getConfigData('carteira', $storeId);
+        $instrucao1     =   $configmodulo->getConfigData('instrucao1', $this->_storeId);
+        $instrucao2     =   $configmodulo->getConfigData('instrucao2', $this->_storeId);
+        $instrucao3     =   $configmodulo->getConfigData('instrucao3', $this->_storeId);
+        $instrucao4     =   $configmodulo->getConfigData('instrucao4', $this->_storeId);
+        $instrucao5     =   $configmodulo->getConfigData('instrucao5', $this->_storeId);
+        $instrucao6     =   $configmodulo->getConfigData('instrucao6', $this->_storeId);
+        $instrucao7     =   $configmodulo->getConfigData('instrucao7', $this->_storeId);
+        $instrucao8     =   $configmodulo->getConfigData('instrucao8', $this->_storeId);
+        $instrucao9     =   $configmodulo->getConfigData('instrucao9', $this->_storeId);
+        $instrucao10    =   $configmodulo->getConfigData('instrucao10', $this->_storeId);
+        $instrucao11    =   $configmodulo->getConfigData('instrucao11', $this->_storeId);
+        $instrucao12    =   $configmodulo->getConfigData('instrucao12', $this->_storeId);
+
+        $urlLogotipo    =   $configmodulo->getConfigData('urlLogotipo', $this->_storeId);
+        $mensagemCabecalho = $configmodulo->getConfigData('mensagemCabecalho', $this->_storeId);
+
+        $carteira       = $configmodulo->getConfigData('carteira', $this->_storeId);
         if($carteira == '') {
             $carteira = 25;
         }
 
 
-        $BradescoDiasdeVencimento = $configmodulo->getConfigData('diasvencimento', $storeId);
-        $vencimento =  "86400" * $BradescoDiasdeVencimento + mktime(0,0,0,date('m'),date('d'),date('Y'));
-        $vencimento = date ("Y-m-d", $vencimento);
+        $BradescoDiasdeVencimento   =   $configmodulo->getConfigData('diasvencimento', $this->_storeId);
+        $vencimento                 =   "86400" * $BradescoDiasdeVencimento + mktime(0,0,0,date('m'),date('d'),date('Y'));
+        $vencimento                 =   date ("Y-m-d", $vencimento);
 
-        $dataatual  = date("Y-m-d", strtotime(now()));
+        $dataatual                  =   date("Y-m-d", strtotime(now()));
 
 
         //monta o array
-        $merchantId = $mercahntid;
-        $chaveSeguranca = $chave;
         $data_service_pedido = array(
             "numero"    =>  $pedido->getIncrementId(),
             "valor"     =>  $valor,
@@ -319,7 +310,7 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
             "instrucoes"            => $data_service_boleto_instrucoes,
             "registro"              => $data_service_boleto_registro);
         $data_service_request = array(
-            "merchant_id"       => $merchantId,
+            "merchant_id"       => $this->_merchantId,
             "meio_pagamento"    => "300",
             "pedido"            => $data_service_pedido,
             "comprador"         => $data_service_comprador,
@@ -337,7 +328,7 @@ class Oitoo_Bradescocomercioeletronico2_Model_Payment extends Mage_Payment_Model
         $headers[] = "Accept-Charset: UTF-8";
         $headers[] = "Accept-Encoding:  application/json";
         $headers[] = "Content-Type: application/json; charset=UTF-8";
-        $AuthorizationHeader = $merchantId.":".$chaveSeguranca;
+        $AuthorizationHeader = $this->_merchantId.":". $this->_chaveSeguranca;
         $AuthorizationHeaderBase64 = base64_encode($AuthorizationHeader);
         $headers[] = "Authorization: Basic ".$AuthorizationHeaderBase64;
 
